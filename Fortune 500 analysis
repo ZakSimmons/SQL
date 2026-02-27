@@ -1,0 +1,88 @@
+--In this query I answered 5 real world request for a summation of benefits and employee tenure. 
+
+/*Request#1“We want to review Technology and Healthcare companies that offer healthcare benefits and have more than 2,000 employees. Show the company name, industry, revenue, employees, and calculate revenue per employee. Categorize each company as ‘High Efficiency’ if revenue per employee is above 0.15, otherwise ‘Standard Efficiency.’”*/
+select 
+ company_name
+ , industry
+ , revenue
+ , employees
+ , revenue/employees as revenue_per_employees
+ , CASE
+WHEN revenue/employees >.15 then 'High_Efficiency'
+else 'Standard_Efficiency'
+end as efficiency_category
+from fortune_companies
+where industry in ('Technology', 'Healthcare')
+and employees >2000
+and healthcare_benefits=1
+;
+/*Request#2“For each industry, calculate total revenue and average employee count. Only include industries where total revenue exceeds 800 (billions). Also categorize industries as ‘Large Workforce’ if average employees exceed 100,000, otherwise ‘Lean Workforce.’*/
+SELECT 
+industry
+, SUM(revenue) as growth
+, avg(employees) as personel
+,
+case
+when employees >100000 then 'Large_Workforce'
+else 'Lean_Workforce'
+end as Workforce_Class
+from fortune_companies
+group by industry
+having growth >800
+;
+
+/*request#3“Categorize companies based on healthcare benefits (‘Offers Benefits’ or ‘No Benefits’). For each industry and benefit category, calculate the number of companies and the average paid time off days. Only show groups where the number of companies is greater than 2.”*/
+select 
+industry
+, 
+CASE
+When healthcare_benefits = 1 then 'Offers Benefits'
+Else 'No Benefits'
+end as benefit_status,
+count(*) as company_count,
+AVG(paid_time_off_days) as avg_pto_days
+from fortune_companies
+group by
+industry,
+case 
+when healthcare_benefits=1 then 'Offers Benefits'
+Else 'No Benefits'
+end
+having count(*)>2
+;
+
+/*request#4“List companies that are NOT in the Energy or Retail industries and have maternity leave of at least 10 weeks. Calculate total time-off value by adding paid_time_off_days and maternity_leave_weeks. Categorize companies as:
+
+‘High Retention’ if avg_employee_tenure > 7
+
+‘Moderate Retention’ if between 5 and 7
+
+‘Low Retention’ if below 5”*/
+select
+company_name
+, industry
+, paid_time_off_days
+, maternity_leave_weeks
+, (paid_time_off_days+maternity_leave_weeks) as PTO
+,case
+  when avg_employee_tenure >7 then 'High Retention'
+  when avg_employee_tenure between 5 and 7 then 'Moderate Retention'
+  else 'low Retention'
+  end as Retention
+ from fortune_companies
+ where industry Not in ('Energy','Retail')
+ and maternity_leave_weeks>=10
+ ;
+/*Request#5“Identify industries where the average revenue per company is greater than the overall company average revenue. Also show the maximum and minimum average employee tenure within those industries. Only include industries where more than 3 companies offer healthcare benefits.”*/
+SELECT 
+industry
+,AVG(revenue) as average_revenue
+, max(avg_employee_tenure) as Max_tenure
+, min(avg_employee_tenure) as Min_tenure
+, sum (case
+when healthcare_benefits = 1 then 1 else 0 end) as companies_with_benefits
+from
+fortune_companies
+group by industry
+having avg(revenue) > (select avg(revenue) from fortune_companies)
+;
