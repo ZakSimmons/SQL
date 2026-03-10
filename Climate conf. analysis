@@ -1,0 +1,55 @@
+--List all VIP members and the hotel they reserved (if any).
+SELECT vips.first_name, vips.Last_name, reservations.hotel
+From vips
+Left JOIN reservations
+ON vips.member_id = reservations.member_id
+
+Left JOiN hotels
+On reservations.hotel = hotels.hotel_id
+;
+--List VIP members who are assigned to an event, and show the event name.
+Select vips.first_name, vips.Last_name, events.event_name
+From vips
+Inner join events
+On vips.event = events.event_id
+;
+--Show VIP members, the event they are attending, and the hotel they reserved (if any).
+Select vips.first_name, vips.Last_name, events.event_name, hotels.hotel_name
+From vips
+Join events
+on vips.event = events.event_id
+
+LEFT JOIN reservations
+On vips.member_id = reservations.member_id
+ 
+LEFT JOIN hotels
+ON reservations.hotel = hotels.hotel_id
+;
+--Show VIP members and the VIP they provide feedback to.
+SELECT a.first_name as member_first
+, a.last_name as member_last
+, b.first_name as feedback_for_first
+, b.last_name as feedback_for_last
+From vips as a
+LEFT Join vips as b
+on a.provides_feedback_to = b.member_id
+;
+--List VIPs who joined before the average member_since year.
+SELECT vips.first_name
+, vips.last_name
+, vips.member_since
+FROM vips
+WHERE member_since <
+(select AVG(member_since)
+ from vips)
+;
+/*Show each hotel and the number of VIPs who RSVP’d “yes” to welcome dinner. Only include hotels with at least 2 RSVPs.*/
+SELECT h.hotel_name,
+COUNT(r.member_id) as num_guests
+FROM hotels h
+JOIN reservations r
+on r.hotel = h.hotel_id
+where r.welcome_rsvp = 1
+group by h.hotel_name
+HAVING COUNT(r.member_id) >=2
+;
